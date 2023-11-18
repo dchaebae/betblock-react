@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import {muiStyles} from './MUIStyles'
+import HomePage from './home/HomePage';
+import AppPage from './app/AppPage';
+import Footer from './footer/Footer';
+import axios from 'axios'
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+axios.defaults.xsrfCookieName = 'csrftoken'
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'
+
+const parseSubdomain = () => {
+  // work with subdomains here
+  let parts = window.location.hostname.split('.');
+  if (parts[0] === 'www') {
+    parts = parts.slice(1)
+  }
+  const subdomain = parts.length > 1 ? parts[0] : null;
+  return subdomain
 }
 
-export default App;
+export default function App() {
+  let extractedDomain = parseSubdomain()
+  let theme = createTheme(muiStyles['dark'])
+
+  let root = document.getElementById('root');
+  root.style.color = theme.palette.text.primary
+  root.parentNode.style.color = theme.palette.text.primary
+  root.parentNode.style.backgroundColor = theme.palette.dark.bg
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline/>
+      {extractedDomain ? <AppPage/> : <HomePage/>}
+      <Footer/>
+    </ThemeProvider>
+  );
+}
