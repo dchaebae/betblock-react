@@ -16,7 +16,7 @@ const parseSubdomain = () => {
   if (parts[0] === 'www') {
     parts = parts.slice(1)
   }
-  const subdomain = parts.length > 1 ? parts[0] : null;
+  const subdomain = parts[0] === 'app' ? parts[0] : null;
   return subdomain
 }
 
