@@ -36,6 +36,7 @@ export const muiStyles = {
             bg: {
                 light: '#1a1a1a',
                 main: '#131319',
+                primary: '#330e6d'
             },
             text: {
                 focus: '#fff',

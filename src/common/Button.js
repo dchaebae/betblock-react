@@ -25,6 +25,6 @@ export default function CustomButton({
 	...props
 }) {
 	return variant === 'outlined' ? 
-		<StyledButton variant={variant} color='accent' {...props} sx={{fontSize: fontSize}} /> :
-			<TextButton variant={variant} {...props} sx={{fontSize: fontSize}}/>
+		<StyledButton variant={variant} color='accent' {...props} sx={{fontSize: fontSize, ...props.sx}} /> :
+			<TextButton variant={variant} {...props} sx={{fontSize: fontSize, ...props.sx}}/>
 }

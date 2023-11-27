@@ -7,12 +7,14 @@ import {
 	Link,
 	useScrollTrigger,
 } from '@mui/material'
-import {
-	styled,
-	// alpha
-} from '@mui/material/styles';
+import {styled} from '@mui/material/styles';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
+import Groups2Icon from '@mui/icons-material/Groups2';
 import BetblockLogo from '../images/BetblockLogo'
 import Button from '../common/Button'
+import {useDynamicContext} from '@dynamic-labs/sdk-react-core';
+import {truncateAddress} from './util'
 
 const TopNav = styled(AppBar)(({theme}) => ({
 	alignItems: 'center',
@@ -38,14 +40,12 @@ function HideOnScroll(props: Props) {
   );
 }
 
-export default function HomePageHeader({...props}) {
+export default function AppPageHeader({...props}) {
 
-	const openApp = (e) => {
-		e.preventDefault();
-		window.open(process.env.REACT_APP_APPLICATION_HOSTNAME, '_blank')
-	}
+	const {user, primaryWallet, handleLogOut} = useDynamicContext()
 
 	return (
+		user ?
 		<HideOnScroll {...props}>
 			<TopNav>
 				<Box sx={{display: 'flex', flex: 1, alignItems: 'center', mx: '10rem', py: '1rem', maxWidth: '1200px', width: '100%'}}>
@@ -53,12 +53,20 @@ export default function HomePageHeader({...props}) {
 						<BetblockLogo sx={{width: '35px'}} />
 						<Typography sx={{fontWeight: 'bold', fontSize: '1.2rem', ml: 1}}>betblock</Typography>
 					</Link>
+
 					<Box sx={{flex: 1, ml: '5rem'}}>
-						<Button variant='text' fontSize='1rem' href='/about'>About</Button>
+						<Button variant='text' fontSize='1rem' href='/lending' startIcon={<AttachMoneyIcon/>}>Lending</Button>
+						<Button variant='text' fontSize='1rem' href='/games' startIcon={<VideogameAssetIcon/>} sx={{ml: '1rem'}}>Games</Button>
+						<Button variant='text' fontSize='1rem' href='/community' startIcon={<Groups2Icon/>} sx={{ml: '1rem'}}>Community</Button>
 					</Box>
-					<Button fontSize='1rem' onClick={openApp}>Open App</Button>
+					<Box sx={{mr: 1}}>
+					<Button variant='text' fontSize='1rem' href='/profile'>{primaryWallet?.address ? truncateAddress(primaryWallet.address) : 'Profile'}</Button>
+					</Box>
+					<Button fontSize='1rem' onClick={handleLogOut}>Log Out</Button>
 				</Box>
 			</TopNav>
 		</HideOnScroll>
+		:
+		<React.Fragment/>
 	)
 }

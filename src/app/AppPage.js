@@ -2,11 +2,12 @@ import React, {useState} from 'react'
 import {
 	Alert,
 	Snackbar,
-	Box,
 } from '@mui/material/';
+import {BrowserRouter} from 'react-router-dom';
 import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core';
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
-import DynamicAuth from './auth/DynamicAuth'
+import AppPageBody from './AppPageBody'
+import AppPageHeader from './AppPageHeader'
 
 export default function AppPage({...props}) {
 	// for the alert snackbar that pops up going through authentication
@@ -18,7 +19,6 @@ export default function AppPage({...props}) {
   });
 
 	return (
-
 		<DynamicContextProvider 
       settings={{
         theme: 'dark',
@@ -43,10 +43,11 @@ export default function AppPage({...props}) {
                 setAlertOpen(true)
                 setAlertMessage('Successfully unlinked wallet')
             }
-        }
-      }}>
-				<Box>This is the app page</Box>
-				<DynamicAuth />
+        }}}>
+            <BrowserRouter>
+                <AppPageHeader />
+                <AppPageBody />
+            </BrowserRouter>
 			<Snackbar
           open={alertOpen}
           autoHideDuration={1500}
