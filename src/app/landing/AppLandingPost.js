@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 // import {styled} from '@mui/material/styles';
 import AppLandingPostNav from './AppLandingPostNav'
+import AppLandingPostTable from './AppLandingPostTable'
 
 export default function AppLandingPost({...props}) {
 
@@ -16,6 +17,7 @@ export default function AppLandingPost({...props}) {
 			</Box>
 
 			<AppLandingPostNav/>
+			<AppLandingPostTable/>
 		</Box>
 	)
 }
