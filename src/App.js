@@ -4,6 +4,7 @@ import HomePage from './home/HomePage';
 import AppPage from './app/AppPage';
 import Footer from './footer/Footer';
 import axios from 'axios'
+import {BrowserRouter} from 'react-router-dom';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline'
 
@@ -30,10 +31,12 @@ export default function App() {
   root.parentNode.style.backgroundColor = theme.palette.dark.bg
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline/>
-      {extractedDomain ? <AppPage/> : <HomePage/>}
-      <Footer/>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline/>
+        {extractedDomain ? <AppPage/> : <HomePage/>}
+        <Footer/>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }

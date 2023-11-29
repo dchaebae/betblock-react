@@ -3,6 +3,11 @@ import Lottie from "lottie-react";
 import bankRaw from "./raw/lottie-bank.json";
 import gameRaw from "./raw/lottie-play.json";
 import communityRaw from "./raw/lottie-profile.json";
+import gameHomeRaw from './raw/lottie-game-home.json';
+import rouletteRaw from './raw/lottie-roulette.json';
+/*
+Home
+*/
 
 export const BankAnimation = forwardRef(function(props, ref) {
   return <Lottie lottieRef={ref} animationData={bankRaw} {...props} />;
@@ -14,4 +19,16 @@ export const GameAnimation = forwardRef(function(props, ref) {
 
 export const CommunityAnimation = forwardRef(function(props, ref) {
   return <Lottie lottieRef={ref} animationData={communityRaw} {...props} />;
+});
+
+
+/*
+Games
+*/
+export const GameHomeAnimation = forwardRef(function(props, ref) {
+  return <Lottie lottieRef={ref} animationData={gameHomeRaw} {...props} />
+});
+
+export const RouletteAnimation = forwardRef(function(props, ref) {
+  return <Lottie lottieRef={ref} animationData={rouletteRaw} {...props} />
 });

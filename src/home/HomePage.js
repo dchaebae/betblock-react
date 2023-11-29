@@ -3,7 +3,6 @@ import {
 	Box,
 } from '@mui/material'
 import {
-	BrowserRouter,
 	Routes,
 	Route
 } from 'react-router-dom';
@@ -17,12 +16,10 @@ export default function HomePage({
 	return (
 		<Box sx={{display: 'flex', flexDirection: 'column'}}>
 			<HomePageHeader />
-			<BrowserRouter>
-				<Routes>
-					<Route path='/' exact element={<HomeLandingPage />} />
-					<Route path='/about' element={<HomeAboutPage />} />
-				</Routes>
-			</BrowserRouter>
+			<Routes>
+				<Route path='/' exact element={<HomeLandingPage />} />
+				<Route path='/about' element={<HomeAboutPage />} />
+			</Routes>
 		</Box>
 	)
 }

@@ -3,7 +3,6 @@ import {
 	Alert,
 	Snackbar,
 } from '@mui/material/';
-import {BrowserRouter} from 'react-router-dom';
 import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core';
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import AppPageBody from './AppPageBody'
@@ -44,10 +43,8 @@ export default function AppPage({...props}) {
                 setAlertMessage('Successfully unlinked wallet')
             }
         }}}>
-            <BrowserRouter>
-                <AppPageHeader />
-                <AppPageBody />
-            </BrowserRouter>
+            <AppPageHeader />
+            <AppPageBody />
 			<Snackbar
           open={alertOpen}
           autoHideDuration={1500}
