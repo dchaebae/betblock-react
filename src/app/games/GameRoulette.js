@@ -12,17 +12,26 @@ import UndoIcon from '@mui/icons-material/Undo';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import ParentSize from '@visx/responsive/lib/components/ParentSize'
 import currency from 'currency.js'
-import Web3 from 'web3'
 import {useDynamicContext} from '@dynamic-labs/sdk-react-core';
 import TextFieldCurrency from '../../common/TextFieldCurrency'
 import Button from '../../common/Button'
 import {rouletteTutorial, rouletteOdds} from './tutorials'
 import {rouletteABI, rouletteContractAddress, linkABI, linkContractAddress} from './contractDetails'
+import { publicMumbaiClient, walletMumbaiClient } from '../ViemClient'
+import { getContract, parseEther } from 'viem'
 
-//const web3 = new Web3(new Web3.providers.HttpProvider('https://polygon-mumbai.g.alchemy.com/v2/nGV5yXejBfPbt63W9-bEIUKlubf6ESSW'));
-const web3 = new Web3(window.ethereum)
-const contractRoulette = new web3.eth.Contract(rouletteABI, rouletteContractAddress);
-const contractLink = new web3.eth.Contract(linkABI, linkContractAddress)
+const contractRoulette = getContract({
+	address: rouletteContractAddress,
+	abi: rouletteABI,
+	publicMumbaiClient,
+	walletMumbaiClient,
+})
+const contractLink = getContract({
+	address: linkContractAddress,
+	abi: linkABI,
+	publicMumbaiClient,
+	walletMumbaiClient
+})
 
 const TooltipWide = styled(({ className, ...props }) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -225,13 +234,25 @@ export default function GameRoulette({...props}) {
 	const lockBet = async () => {
 		if (primaryWallet?.address) {
 			let addr = primaryWallet.address
-			const amount = web3.utils.toWei('0.5', 'ether')
-			// await contractRoulette.methods.approve(rouletteContractAddress, amount).send({from: addr})
-			// await contractRoulette.methods.placeBet(1, 1, amount).send({from: addr})
-			await contractLink.methods.approve(rouletteContractAddress, amount).send({from: addr})
-			// await contractRoulette.methods.approve(rouletteContractAddress, amount).send({from: addr})
-			const result = await contractRoulette.methods.placeBet(1, 1, amount).send({from: addr})
-				.on('error', (error) => console.log(error))
+
+			const amount = parseEther('0.1')
+
+			var {request} = await publicMumbaiClient.simulateContract({
+				address: linkContractAddress,
+				abi: linkABI,
+				functionName: 'approve',
+				args: [rouletteContractAddress, amount],
+				account: addr
+			})
+			await walletMumbaiClient.writeContract(request)
+			var {request} = await publicMumbaiClient.simulateContract({
+				address: rouletteContractAddress,
+				abi: rouletteABI,
+				functionName: 'placeBet',
+				args: [1, 1, amount],
+				account: addr
+			})
+			await walletMumbaiClient.writeContract(request)
 		}
 		return
 	}

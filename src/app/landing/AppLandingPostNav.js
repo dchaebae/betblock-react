@@ -11,6 +11,8 @@ import {
 	CommunityAnimation
 } from '../../lottie/LottieWraps'
 import PolygonLogo from '../../images/PolygonLogo'
+import AvalancheLogo from '../../images/AvalancheLogo'
+import ChainlinkLogo from '../../images/ChainlinkLogo'
 
 export default function AppLandingPostNav({...props}) {
 	let bankRef = useRef()
@@ -37,14 +39,21 @@ export default function AppLandingPostNav({...props}) {
 	return (
 		<Grid container spacing={2} sx={{mt: '5rem', mx: 10, }}>
 			<Grid md={4} sm={12} onMouseEnter={() => bankRef.current.goToAndPlay()} onMouseLeave={() => bankRef.current.goToAndStop(100, true)}>
-				<HoverSelectionCard href="/lending" heading="Lending" subheading="Access Your Gateway to Game Funds">
+				<HoverSelectionCard href="/bank" heading="Bank" subheading="Access Your Gateway to Game Funds">
 					<Box sx={{display: 'flex'}}>
-						<Box sx={{flex: 1, py: 2}}>
+						<Box sx={{flex: 1, mt: 1}}>
 							<Box sx={{display: 'flex', flexDirection: 'column'}}>
-								<Typography>Some description here</Typography>
 								<Box sx={{display: 'flex', mt: 1, alignItems: 'center'}}>
-									<PolygonLogo sx={{width: '30px', height: '100%'}} id='matic' simple={+true} />
-									<Typography sx={{mt: 1, fontSize: '1.6rem', ml: 1}} gutterBottom>$XXX.XX</Typography>
+									<ChainlinkLogo sx={{width: '20px', height: '100%'}} id='link' simple={+true} />
+									<Typography sx={{fontSize: '1.2rem', ml: 1}}>$XXX.XX</Typography>
+								</Box>
+								<Box sx={{display: 'flex', mt: 1, alignItems: 'center'}}>
+									<PolygonLogo sx={{width: '20px', height: '100%'}} id='matic' simple={+true} />
+									<Typography sx={{fontSize: '1.2rem', ml: 1}}>$XXX.XX</Typography>
+								</Box>
+								<Box sx={{display: 'flex', mt: 1, alignItems: 'center'}}>
+									<AvalancheLogo sx={{width: '20px', height: '100%'}} id='avax' simple={+true} />
+									<Typography sx={{fontSize: '1.2rem', ml: 1}}>$XXX.XX</Typography>
 								</Box>
 							</Box>
 						</Box>

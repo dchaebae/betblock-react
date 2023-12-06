@@ -6,7 +6,10 @@ import { NumericFormat } from 'react-number-format';
 
 const NumericFormatCustom = React.forwardRef(
   function NumericFormatCustom(props, ref) {
-    const { onChange, ...other } = props;
+    const {
+      onChange,
+      dollarPrefix = false,
+      ...other } = props;
 
     return (
       <NumericFormat
@@ -23,28 +26,27 @@ const NumericFormatCustom = React.forwardRef(
         thousandSeparator
         valueIsNumericString
         allowNegative={false}
-        prefix="$"
+        {...(dollarPrefix && {prefix: "$"})}
       />
     );
   },
 );
 
 export default function TextFieldCurrency({
-	value,
-	variant,
-	label,
 	handleChange,
+  dollarPrefix = false,
 	...props
 }) {
 	return (
 		<TextField
-      label={label}
-      value={value}
+      {...props}
       onChange={handleChange}
       name="numberformat"
       InputProps={{
         inputComponent: NumericFormatCustom,
-      }}
-      variant={variant}/>
+        inputProps: {
+          dollarPrefix: dollarPrefix
+        }
+      }}/>
 	)
 }

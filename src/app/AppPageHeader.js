@@ -55,12 +55,12 @@ export default function AppPageHeader({...props}) {
 					</Link>
 
 					<Box sx={{flex: 1, ml: '5rem'}}>
-						<Button variant='text' fontSize='1rem' href='/lending' startIcon={<AttachMoneyIcon/>}>Lending</Button>
+						<Button variant='text' fontSize='1rem' href='/bank' startIcon={<AttachMoneyIcon/>}>Bank</Button>
 						<Button variant='text' fontSize='1rem' href='/games' startIcon={<VideogameAssetIcon/>} sx={{ml: '1rem'}}>Games</Button>
 						<Button variant='text' fontSize='1rem' href='/community' startIcon={<Groups2Icon/>} sx={{ml: '1rem'}}>Community</Button>
 					</Box>
 					<Box sx={{mr: 1}}>
-					<Button variant='text' fontSize='1rem' href='/profile'>{primaryWallet?.address ? truncateAddress(primaryWallet.address) : 'Profile'}</Button>
+					<Button variant='text' fontSize='1rem' href={'/profile/' + primaryWallet?.address}>{user?.ens?.name ? user.ens.name : (primaryWallet?.address ? truncateAddress(primaryWallet.address) : 'Profile')}</Button>
 					</Box>
 					<Button fontSize='1rem' onClick={handleLogOut}>Log Out</Button>
 				</Box>

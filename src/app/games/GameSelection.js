@@ -3,12 +3,20 @@ import {
 	Box,
 	Typography,
 } from '@mui/material';
+import {styled} from '@mui/material/styles';
 import Grid from '@mui/material/Unstable_Grid2'; // Grid version 2
 import {
 	GameHomeAnimation,
 	RouletteAnimation
 } from '../../lottie/LottieWraps'
 import HoverSelectionCard from '../../common/HoverSelectionCard'
+
+const BackgroundBox = styled(Box)(({theme}) => ({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'stretch',
+	background: 'linear-gradient(176deg, #121212 35%, #330e6d 55%, #121212 75%)'
+}))
 
 export default function GameSelection({...props}) {
 
@@ -22,7 +30,7 @@ export default function GameSelection({...props}) {
 	}, [])
 
 	return (
-		<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'stretch', mt: 5}}>
+		<BackgroundBox sx={{mt: 5}}>
 			<Box sx={{display: 'flex', mx: 10, justifyContent: 'center'}}>
 					<Box sx={{display: 'flex', flexDirection: 'column', pt: '50px'}}>
 						<Typography variant='h3' color='text.accent'>Game Library</Typography>
@@ -60,6 +68,6 @@ export default function GameSelection({...props}) {
 					</HoverSelectionCard>
 				</Grid>
 			</Grid>
-		</Box>
+		</BackgroundBox>
 	)
 }

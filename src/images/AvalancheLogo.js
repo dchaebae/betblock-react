@@ -1,5 +1,6 @@
 import React from 'react';
 import LogoImage from './raw/avax-logo.png'
+import LogoImageSimple from './raw/avax-simple-logo.png'
 
 /*
     Avalanche logo that wraps the png
@@ -7,12 +8,13 @@ import LogoImage from './raw/avax-logo.png'
 class AvalancheLogo extends React.Component {
     render() {
         return (
-            <img src={LogoImage} style={this.props.sx} alt='avalanche-logo' />
+            <img src={this.props.simple ? LogoImageSimple : LogoImage} style={this.props.sx} alt='avalanche-logo' />
         )
     }
 }
 
 AvalancheLogo.defaultProps = {
+    simple: false,
     square: false,
     sx: {}
 }

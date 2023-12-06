@@ -10,8 +10,12 @@ import {
 } from 'react-router-dom';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import AppLandingPage from './landing/AppLandingPage';
+import BankHome from './bank/BankHome';
 import GameSelection from './games/GameSelection';
 import GameRoulette from './games/GameRoulette';
+import ProfileSingle from './profile/ProfileSingle';
+import CommunityHome from './community/CommunityHome';
+import NotFound from '../common/NotFound';
 
 export default function AppPageBody ({
 	...props
@@ -35,12 +39,14 @@ export default function AppPageBody ({
 		<Box sx={{mt: '80px'}}>
 			<Routes>
 				<Route path={'/'} element={<AppLandingPage />}/>
-				<Route path={'lending'} element={<AuthWrapper><Box>Lending Page</Box></AuthWrapper>}/>
-				<Route path={'games'} element={<AuthWrapper><GameSelection/></AuthWrapper>}/>
+				<Route path={'/bank'} element={<AuthWrapper><BankHome/></AuthWrapper>}/>
+				<Route path={'/games'} element={<AuthWrapper><GameSelection/></AuthWrapper>}/>
 				<Route path={'/games/roulette/'} element={<AuthWrapper><GameRoulette/></AuthWrapper>}/>
 
-				<Route path={'community'} element={<AuthWrapper><Box>Community Page</Box></AuthWrapper>}/>
-				<Route path={'profile'} element={<AuthWrapper><Box>Profile Page</Box></AuthWrapper>}/>
+				<Route path={'/community'} element={<AuthWrapper><CommunityHome/></AuthWrapper>}/>
+				<Route path={'/profile/:address'} element={<AuthWrapper><ProfileSingle/></AuthWrapper>}/>
+				
+				<Route path='*' element={<AuthWrapper><NotFound/></AuthWrapper>} />
 			</Routes>
 		</Box>
 	)
