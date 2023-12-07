@@ -5,6 +5,7 @@ import {
 	Typography,
 	Tooltip,
 	IconButton,
+	CircularProgress,
 } from '@mui/material';
 import {styled} from '@mui/material/styles';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -14,6 +15,7 @@ import Alert from '../../common/Alert'
 import {format, parseISO} from 'date-fns'
 import { publicMainnetClient } from '../ViemClient'
 import {truncateAddress} from '../util'
+import BetblockLogo from '../../images/BetblockLogo'
 
 const BackgroundBox = styled(Box)(({theme}) => ({
 	display: 'flex',
@@ -29,7 +31,6 @@ export default function ProfileSingle({
 	const [activities, setActivities] = useState([])
 	const [meta, setMeta] = useState({})
 	const [mainName, setMainName] = useState('')
-
 	const {address} = useParams()
 
 	const copyAddress = (e) => {
@@ -56,6 +57,9 @@ export default function ProfileSingle({
 				else {
 					setMainName(truncateAddress(address, 7, 5))
 				}
+			}).catch((err) => {
+				console.error(err)
+				setMainName(truncateAddress(address, 7, 5))
 			})
 		}
 		load()
@@ -66,11 +70,14 @@ export default function ProfileSingle({
 			<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
 				<Paper elevation={1} sx={{p: 4, width: '100%'}}>
 					<Box sx={{display: 'flex'}}>
-						<Box sx={{width: '256px', height: '256px', backgroundColor: 'red'}}></Box>
+						<Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center',
+							width: '256px', height: '256px', borderRadius: '10px', border: (theme) => `1px solid ${theme.palette.dark.modal}`}}>
+							<BetblockLogo/>
+						</Box>
 						<Box sx={{display: 'flex', flexDirection: 'column', ml: 2}}>
 							<Typography color='text.secondary'>{address}</Typography>
 							<Box sx={{display: 'flex', alignItems: 'center'}}>
-								<Typography variant='h5'>{mainName}</Typography>
+								{mainName === '' ? <CircularProgress size='1.6rem'/> : <Typography variant='h5'>{mainName}</Typography>}
 								<Tooltip title={<Typography>Copy address</Typography>}>
 									<IconButton onClick={(e) => copyAddress(e)} sx={{ml: 1}}><ContentCopyIcon/></IconButton>
 								</Tooltip>
