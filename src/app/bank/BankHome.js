@@ -17,6 +17,7 @@ import InputModal from '../../common/InputModal'
 import {useDynamicContext} from '@dynamic-labs/sdk-react-core';
 import {publicFujiClient, walletFujiClient, publicMumbaiClient} from '../ViemClient'
 import {fujiCollateralAddress, fujiCollateralABI} from './contractDetails'
+import {pricingMumbaiABI, pricingMumbaiAddress} from '../contractDetailsPricing'
 import { getContract, parseEther } from 'viem'
 
 const contractAvaxLending = getContract({
@@ -47,9 +48,15 @@ export default function BankHome({...props}) {
 	const [inputSubLabel, setInputSubLabel] = useState(null)
 	const [inputErrorMessage, setInputErrorMessage] = useState('')
 
+	// balance
 	const [linkBalance, setLinkBalance] = useState(-1)
 	const [avaxBalance, setAvaxBalance] = useState(-1)
 	const [maticBalance, setMaticBalance] = useState(-1)
+
+	// price
+	const [linkPrice, setLinkPrice] = useState(-1)
+	const [avaxPrice, setAvaxPrice] = useState(-1)
+	const [maticPrice, setMaticPrice] = useState(-1)
 
 	const mounted = useRef(true)
 
@@ -143,7 +150,6 @@ export default function BankHome({...props}) {
 	useEffect(() => {
 		mounted.current = true
 		const dataPull = async () => {
-			//const result = await walletFujiClient.getAddresses();
 			if (primaryWallet?.address) {
 				publicFujiClient.getBalance({address: primaryWallet?.address}).then((res) => {
 					if (mounted.current) {
@@ -163,6 +169,31 @@ export default function BankHome({...props}) {
 						setMaticBalance(0.)
 					}
 				})
+
+				// link price load
+				publicMumbaiClient.readContract({
+					address: pricingMumbaiAddress,
+					abi: pricingMumbaiABI,
+					functionName: 'getLatestLinkPrice'
+				}).then((res) => {
+					if (res) {
+						setLinkPrice(parseInt(res) * 1E-8)
+					}
+				})
+
+				// matic price load
+				publicMumbaiClient.readContract({
+					address: pricingMumbaiAddress,
+					abi: pricingMumbaiABI,
+					functionName: 'getLatestMaticPrice'
+				}).then((res) => {
+					if (res) {
+						setMaticPrice(parseInt(res) * 1E-8)
+					}
+				})
+
+				// avax price load
+				setAvaxPrice(0.)
 			}
 		}
 
@@ -175,10 +206,23 @@ export default function BankHome({...props}) {
 
 	const getBalanceCell = (asset, val) => {
 		if (asset === 'MATIC (testnet)') {
-			return maticBalance < 0 ? <CircularProgress /> : <Typography>{currency(maticBalance, {'pattern': '#', precision: 3}).format()}</Typography>
+			return maticBalance < 0 ? <CircularProgress size="1.6rem" /> :
+				<Typography>{currency(maticBalance, {'pattern': '#', precision: 3}).format()}</Typography>
 		}
 		else if (asset === 'AVAX (testnet)') {
-			return avaxBalance < 0 ? <CircularProgress /> : <Typography>{currency(avaxBalance, {'pattern': '#', precision: 3}).format()}</Typography>
+			return avaxBalance < 0 ? <CircularProgress size="1.6rem" /> :
+				<Typography>{currency(avaxBalance, {'pattern': '#', precision: 3}).format()}</Typography>
+		}
+	}
+
+	const getPriceCell = (asset, val) => {
+		if (asset === 'MATIC (testnet)') {
+			return maticPrice < 0 ? <CircularProgress size="1.6rem" /> :
+				<Typography>{currency(maticPrice).format()}</Typography>
+		}
+		else if (asset === 'AVAX (testnet)') {
+			return avaxPrice < 0 ? <CircularProgress size="1.6rem" /> :
+				<Typography>{currency(avaxPrice).format()}</Typography>
 		}
 	}
 
@@ -191,6 +235,11 @@ export default function BankHome({...props}) {
 		), renderHeader: (params) => (
 			<Box sx={{display: 'flex', flex: 1}}>
 				<Typography sx={{fontSize: '0.875rem', fontWeight: 500}}>Asset</Typography>
+			</Box>
+		)},
+		{field: 'price', 'headerName': 'Price', minWidth: 110, renderCell: (params) => (
+			<Box sx={{display: 'flex', flex: 1, justifyContent: 'flex-end', mr: '20px'}}>
+				{ getPriceCell(params.row.asset) }
 			</Box>
 		)},
 		{field: 'balance', 'headerName': 'Wallet Balance', minWidth: 150, renderCell: (params) => (
@@ -246,7 +295,8 @@ export default function BankHome({...props}) {
 						<Typography variant='h4'>203,746</Typography>
 					</Box>
 					<Box sx={{display: 'flex', alignItems: 'center'}}>
-						<Typography color='text.secondary' sx={{mr: 1}}>APY {0.03}%</Typography>
+						{linkPrice < 0 ? <CircularProgress size='1.6rem'/> : <Typography color='text.secondary'>1 LINK = {currency(linkPrice).format()}</Typography>}
+						<Typography color='text.secondary' sx={{mr: 1, ml: 3}}>APY {0.03}%</Typography>
 						<Tooltip title={<Typography>Add to the LINK pool and earn interest!</Typography>}>
 							<Box><Button sx={{mt: 0.5}}>Lend</Button></Box>
 						</Tooltip>
