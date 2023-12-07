@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
 	Paper,
 	Box,
@@ -12,6 +12,8 @@ import {copyContent} from '../util'
 import {useParams} from 'react-router-dom'
 import Alert from '../../common/Alert'
 import {format, parseISO} from 'date-fns'
+import { publicMainnetClient } from '../ViemClient'
+import {truncateAddress} from '../util'
 
 const BackgroundBox = styled(Box)(({theme}) => ({
 	display: 'flex',
@@ -25,7 +27,8 @@ export default function ProfileSingle({
 }) {
 	const [openAlert, setOpenAlert] = useState(false)
 	const [activities, setActivities] = useState([])
-	const [meta, setMeta] = useState({joined: '2023-12-04T12:00:00Z'})
+	const [meta, setMeta] = useState({})
+	const [mainName, setMainName] = useState('')
 
 	const {address} = useParams()
 
@@ -41,6 +44,23 @@ export default function ProfileSingle({
 		return format(parseISO(meta.joined), 'PPP')
 	}
 
+	useEffect(() => {
+		const load = async () => {
+			// load activities based on address
+			setActivities([])
+			setMeta({joined: '2023-12-04T12:00:00Z'})
+			await publicMainnetClient.getEnsName({address: address}).then((res) => {
+				if (res) {
+					setMainName(res)
+				}
+				else {
+					setMainName(truncateAddress(address, 7, 5))
+				}
+			})
+		}
+		load()
+	}, [address])
+
 	return (
 		<BackgroundBox sx={{mt: 5, mb: 10}}>
 			<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
@@ -50,7 +70,7 @@ export default function ProfileSingle({
 						<Box sx={{display: 'flex', flexDirection: 'column', ml: 2}}>
 							<Typography color='text.secondary'>{address}</Typography>
 							<Box sx={{display: 'flex', alignItems: 'center'}}>
-								<Typography variant='h5'>{'dchaebae.eth'}</Typography>
+								<Typography variant='h5'>{mainName}</Typography>
 								<Tooltip title={<Typography>Copy address</Typography>}>
 									<IconButton onClick={(e) => copyAddress(e)} sx={{ml: 1}}><ContentCopyIcon/></IconButton>
 								</Tooltip>
