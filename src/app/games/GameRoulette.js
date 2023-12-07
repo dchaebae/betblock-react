@@ -248,8 +248,8 @@ export default function GameRoulette({...props}) {
 			var {request} = await publicMumbaiClient.simulateContract({
 				address: rouletteContractAddress,
 				abi: rouletteABI,
-				functionName: 'placeBet',
-				args: [1, 1, amount],
+				functionName: 'placeBets',
+				args: [[1, 1, 0], [1, 0, 1], amount],
 				account: addr
 			})
 			await walletMumbaiClient.writeContract(request)

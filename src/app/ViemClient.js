@@ -1,5 +1,10 @@
 import {createPublicClient, http, createWalletClient, custom} from 'viem'
-import { polygonMumbai, avalancheFuji } from 'viem/chains'
+import { polygonMumbai, avalancheFuji, mainnet } from 'viem/chains'
+
+export const publicMainnetClient = createPublicClient({
+	chain: mainnet,
+	transport: http(),
+})
 
 export const publicMumbaiClient = createPublicClient({
 	chain: polygonMumbai,

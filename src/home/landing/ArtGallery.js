@@ -1,7 +1,8 @@
-import React from 'react'
+import React, {Suspense} from 'react'
 import {
   Box,
   Typography,
+  CircularProgress
 } from '@mui/material/';
 import { Canvas, useLoader } from '@react-three/fiber'
 import { PerspectiveCamera, OrbitControls } from '@react-three/drei'
@@ -94,11 +95,13 @@ export default function ArtGallerySized ({
     {image: Image5, ratio: 1}
   ]
   return (
-    <ParentSize>
-      {({width, height}) =>
-        <ArtGallery width={width} height={height} gallery={gallery}/>
-      }
-    </ParentSize>
+    <Suspense fallback={<CircularProgress />}>
+      <ParentSize>
+        {({width, height}) =>
+          <ArtGallery width={width} height={height} gallery={gallery}/>
+        }
+      </ParentSize>
+    </Suspense>
   )
 }
 

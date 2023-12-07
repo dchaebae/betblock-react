@@ -8,7 +8,6 @@ import {
 const TextButton = styled(Button)(({theme}) => ({
 	textTransform: 'none',
 	padding: '6px 18px',
-	borderBottom: '2px solid transparent',
 	'&:hover': {
 		color: theme.palette.text.accent,
 	},

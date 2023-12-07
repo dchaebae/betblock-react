@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import {
 	Box,
 	Typography,
@@ -9,6 +9,10 @@ import {
 import LeaderboardTable from './LeaderboardTable'
 import ArtGallery from '../../home/landing/ArtGallery'
 import {styled, alpha} from '@mui/material/styles';
+import { isAddress } from 'viem'
+import {normalize} from 'viem/ens'
+import {useNavigate} from 'react-router-dom'
+import {publicMainnetClient} from '../ViemClient'
 
 const BackgroundBox = styled(Box)(({theme}) => ({
 	display: 'flex',
@@ -36,19 +40,93 @@ export default function CommunityHome({
 }) {
 
 	const [searchInput, setSearchInput] = useState('')
+	const [searchOptions, setSearchOptions] = useState([])
+	const [searchOpen, setSearchOpen] = useState(false)
+	const [searchLoading, setSearchLoading] = useState(false)
 
-	const onSearchChange = (e) => {
-		setSearchInput(e.target.value)
+	let navigate = useNavigate()
+
+	let timerId = useRef(null);
+
+	const handleChange = (newValue) => {
+		navigate('/profile/' + newValue.address)
 	}
+
+  useEffect(() => {
+    let active = true;
+
+    const handleInputChange = async () => {
+			if (!searchInput || searchInput === '') {
+				setSearchOptions([])
+				return
+			}
+
+			clearTimeout(timerId.current);
+			setSearchLoading(true)
+			setSearchOptions([])
+			timerId.current = setTimeout(async() => {
+				setSearchLoading(true)
+				if (isAddress(searchInput)) {
+					setSearchOptions([{name: searchInput, address: searchInput}])
+				}
+				else {
+					let newValLower = searchInput.toLowerCase();
+					let ensAttempt = newValLower.endsWith('.eth') ? newValLower : (newValLower + '.eth')
+					await publicMainnetClient.getEnsAddress({name: normalize(ensAttempt)}).then((res) => {
+						if (res) {
+							setSearchOptions([{name: ensAttempt, address: res}])
+						}
+						else {
+							setSearchOptions([])
+						}
+					}).catch((err) => {
+						console.error('Error fetching ENS address:', err);
+						setSearchOptions([]);
+					})
+				}
+				setSearchLoading(false)
+			}, 500)
+		}
+
+    if (active) {
+      handleInputChange()
+    }
+    return () => {
+      active = false
+    }
+  }, [searchInput])
 
 	return (
 		<BackgroundBox sx={{mt: 5, pb: 10}}>
 			<Box sx={{width: '50%'}}>
-				<SearchField
-					fullWidth
-					placeholder='Search address or ENS of player'
-					value={searchInput}
-					onChange={(e) => onSearchChange(e)} />
+				<Autocomplete
+					value={null}
+					open={searchOpen}
+					onOpen={() => setSearchOpen(true)}
+					onClose={() => setSearchOpen(false)}
+					options={searchOptions}
+					filterOptions={(x) => x}
+					getOptionLabel={(x) => x.name}
+					noOptionsText="No address result"
+					loading={searchLoading}
+					onChange={(e, newValue) => {handleChange(newValue)}}
+					onInputChange={(e, newInputVal) => {setSearchInput(newInputVal)}}
+					renderInput={(params) => {
+						return (
+							<Box ref={params.InputProps.ref}>
+							<SearchField
+								fullWidth
+								inputProps={{...params.inputProps}}
+								placeholder='Search address or ENS of player' />
+							</Box>
+						)}
+					}
+					renderOption={(props, option) => {
+            return (
+              <Box component='li' sx={{ '& > img': { mr: 4, flexShrink: 0 } }} {...props}>
+                <Typography sx={{ml: 1}}>{option.name}</Typography>
+              </Box>
+              )}}/>
 			</Box>
 
 			<Box sx={{height: '400px', minWidth: '55rem', mt: 4}}>
