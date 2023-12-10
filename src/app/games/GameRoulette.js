@@ -1,8 +1,9 @@
-import React, {useState, useReducer, useMemo} from 'react'
+import React, {useState, useReducer, useMemo, useEffect} from 'react'
 import {
 	Box,
 	Typography,
 	IconButton,
+	CircularProgress
 } from '@mui/material';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import {styled} from '@mui/material/styles';
@@ -47,12 +48,12 @@ function BetBox({
 	...props
 }) {
 	return (
-		<Tooltip title={<Typography>{betType}: {currency(betValue).format()}</Typography>}>
+		<Tooltip title={<Typography>{betType}: {betValue}</Typography>}>
 			<Box sx={{borderRadius: '50%', width: '30px', height: '30px',
 				position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
 				boxShadow: '3px 3px 5px black', display: 'flex', alignItems: 'center', justifyContent: 'center',
 				backgroundColor: (theme) => theme.palette.accent.main, zIndex: 5}}  {...props}>
-				<Typography sx={{fontSize: '10px', color: (theme) => theme.palette.dark.bg}}>{currency(betValue, {pattern: '#', precision: 0}).format()}</Typography>
+				<Typography sx={{fontSize: '10px', color: (theme) => theme.palette.dark.bg}}>{betValue}</Typography>
 			</Box>
 		</Tooltip>
 	)
@@ -224,37 +225,138 @@ export default function GameRoulette({...props}) {
 	const [dozens, dispatchDozens] = useReducer(arrayReducer, [0, 0, 0])
 	const [columns, dispatchColumns] = useReducer(arrayReducer, [0, 0, 0])
 
+	const [submitDisabled, setSubmitDisabled] = useState(false)
+
+	const [winnings, setWinnings] = useState(-1)
+	const [rollResult, setRollResult] = useState(-1)
+
 	const { primaryWallet } = useDynamicContext();
+
+	const winningsListener = useMemo(() => {
+		console.log('new definition')
+		return publicMumbaiClient.watchContractEvent({
+	  address: rouletteContractAddress,
+	  abi: rouletteABI,
+	  functionName: 'RandomNumberFulfilled',
+	  onLogs: (logs) => {
+	  	setWinnings(parseInt(logs[0].args.totalWinnings) * 1E-18);
+	  	setRollResult(parseInt(logs[0].args.randomResult))
+	  }
+	})}, [])
 
 	// updating the bet size
 	const handleBetChange = (e) => {
 		setBet(parseFloat(e.target.value));
 	}
 
+	const getBetArray = () => {
+		let outputArr = new Array(157).fill(0) // total amount
+
+		// zero bet
+		outputArr[0] = inside[0]
+		// iterate through the inside bets, fill in split, street, corner, six
+		Array.from(Array(36)).forEach((val, i) => {
+			let ind = i + 1 // since skipping 0
+			// straight up
+			outputArr[ind] = inside[(ind - 1) * 4 + 1]
+
+			// left split
+			outputArr[ind + 36] = inside[(ind - 1) * 4 + 2] // horizontal split
+
+
+			// bottom split
+			if (ind % 3 === 1) { // true street bet
+				outputArr[Math.floor(ind / 3) + 99] = inside[(ind - 1) * 4 + 3]
+			}
+			else {
+				outputArr[(Math.floor((ind - 1) / 3) * 2 + ((ind - 1) % 3)) + 72] = inside[(ind - 1) * 4 + 3] // vertical split
+			}
+
+			// corners
+			if (ind === 1) { // corner 0, 1, 2, 3
+				outputArr[111] = inside[ind * 4]
+			}
+			else if (ind === 2) { // street bet 0, 1, 2
+				outputArr[97] = inside[ind * 4]
+			}
+			else if (ind === 3) { // street bet 0, 2, 3
+				outputArr[98] = inside[ind * 4]
+			}
+			else if (ind % 3 === 1) { //six bets
+				outputArr[((ind - 4) / 3) + 134] = inside[ind * 4]
+			}
+			else { // true corner bet
+				outputArr[ind + 107] = inside[ind * 4]
+			}
+		})
+
+		// all the outside bets
+		outputArr[145] = columns[2]
+		outputArr[146] = columns[1]
+		outputArr[147] = columns[0]
+		outputArr[148] = dozens[0]
+		outputArr[149] = dozens[1]
+		outputArr[150] = dozens[2]
+		outputArr[151] = red
+		outputArr[152] = black
+		outputArr[153] = over
+		outputArr[154] = under
+		outputArr[155] = even
+		outputArr[156] = odd
+		return outputArr
+	}
+
 	const lockBet = async () => {
+		setSubmitDisabled(true)
+		let betSpread = getBetArray();
 		if (primaryWallet?.address) {
 			let addr = primaryWallet.address
 
-			const amount = parseEther('0.1')
-
-			var {request} = await publicMumbaiClient.simulateContract({
+			const amount = parseEther('' + total + 1)
+			console.log(betSpread)
+			const approvalRequest = await publicMumbaiClient.simulateContract({
 				address: linkContractAddress,
 				abi: linkABI,
 				functionName: 'approve',
 				args: [rouletteContractAddress, amount],
 				account: addr
 			})
-			await walletMumbaiClient.writeContract(request)
-			var {request} = await publicMumbaiClient.simulateContract({
+			await walletMumbaiClient.writeContract(approvalRequest.request)
+			// place bet
+			await walletMumbaiClient.writeContract({
 				address: rouletteContractAddress,
 				abi: rouletteABI,
 				functionName: 'placeBets',
-				args: [[1, 1, 0], [1, 0, 1], amount],
+				args: [betSpread.map((val) => parseEther('' + val))],
 				account: addr
 			})
-			await walletMumbaiClient.writeContract(request)
 		}
+		setSubmitDisabled(false)
 		return
+	}
+
+	const tempRollDice = async() => {
+		let addr = primaryWallet?.address
+		var {request} = await publicMumbaiClient.simulateContract({
+			address: rouletteContractAddress,
+			abi: rouletteABI,
+			functionName: 'rollDice',
+			//args: [betSpread.map((val) => '' + (val * 1E18))],
+			account: addr
+		})
+		await walletMumbaiClient.writeContract(request)
+	}
+
+	const tempCurrentWinnings = async() => {
+		let addr = primaryWallet?.address
+		var {request} = await publicMumbaiClient.simulateContract({
+			address: rouletteContractAddress,
+			abi: rouletteABI,
+			functionName: 'getCurrentWinnings',
+			args: [addr],
+			account: addr
+		})
+		await walletMumbaiClient.writeContract(request).then((res) => console.log(res))
 	}
 
 	// pop from events
@@ -369,6 +471,8 @@ export default function GameRoulette({...props}) {
 		dispatchColumns({type: 'reset'})
 		dispatchInside({type: 'reset'})
 		dispatchEvents({type: 'reset'})
+		setRollResult(-1)
+		setWinnings(-1)
 	}
 
 	const total = useMemo(() => {
@@ -524,7 +628,21 @@ export default function GameRoulette({...props}) {
 					</Tooltip>
 				</Box>
 				<Box sx={{ml: 3, mt: 1}}>
-					<Button disabled={total === 0} onClick={() => lockBet()}>Submit Bet</Button>
+					{rollResult >= 0 ?
+						<Box>
+							{winnings > 0 ? <Button onClick={reset}>Collect</Button> : <Button onClick={reset}>Go Again</Button>}
+							<Box sx={{mt: 1}}>
+								<Typography>Rolled: {rollResult}</Typography>
+								<Typography>Total winnings: {winnings}</Typography>
+							</Box>
+						</Box>
+						:
+						<Box sx={{display: 'flex'}}>
+							<Button disabled={total === 0} loading={submitDisabled} onClick={() => lockBet()}>Submit Bet</Button>
+							<Button onClick={() => {
+								tempRollDice()
+							}}>Roll Dice</Button>
+						</Box>}
 				</Box>
 			</Box>
 		</Box>

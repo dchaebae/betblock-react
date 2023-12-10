@@ -1,11 +1,11 @@
 import React from 'react'
-import {Button} from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton';
 import {
 	//alpha,
 	styled
 } from '@mui/material/styles';
 
-const TextButton = styled(Button)(({theme}) => ({
+const TextButton = styled(LoadingButton)(({theme}) => ({
 	textTransform: 'none',
 	padding: '6px 18px',
 	'&:hover': {
@@ -13,7 +13,7 @@ const TextButton = styled(Button)(({theme}) => ({
 	},
 }))
 
-const StyledButton = styled(Button)(({theme}) => ({
+const StyledButton = styled(LoadingButton)(({theme}) => ({
 	textTransform: 'none',
 	borderColor: 'linear-gradient(90deg, #681DDB 0%, #D82633 100%)'
 }))
