@@ -54,7 +54,6 @@ export default function HomePageHeader({...props}) {
 						<Typography sx={{fontWeight: 'bold', fontSize: '1.2rem', ml: 1}}>betblock</Typography>
 					</Link>
 					<Box sx={{flex: 1, ml: '5rem'}}>
-						<Button variant='text' fontSize='1rem' href='/about'>About</Button>
 					</Box>
 					<Button fontSize='1rem' onClick={openApp}>Open App</Button>
 				</Box>

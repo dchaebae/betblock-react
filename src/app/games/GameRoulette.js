@@ -21,18 +21,18 @@ import {rouletteABI, rouletteContractAddress, linkABI, linkContractAddress} from
 import { publicMumbaiClient, walletMumbaiClient } from '../ViemClient'
 import { getContract, parseEther } from 'viem'
 
-const contractRoulette = getContract({
-	address: rouletteContractAddress,
-	abi: rouletteABI,
-	publicMumbaiClient,
-	walletMumbaiClient,
-})
-const contractLink = getContract({
-	address: linkContractAddress,
-	abi: linkABI,
-	publicMumbaiClient,
-	walletMumbaiClient
-})
+// const contractRoulette = getContract({
+// 	address: rouletteContractAddress,
+// 	abi: rouletteABI,
+// 	publicMumbaiClient,
+// 	walletMumbaiClient,
+// })
+// const contractLink = getContract({
+// 	address: linkContractAddress,
+// 	abi: linkABI,
+// 	publicMumbaiClient,
+// 	walletMumbaiClient
+// })
 
 const TooltipWide = styled(({ className, ...props }) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -233,7 +233,6 @@ export default function GameRoulette({...props}) {
 	const { primaryWallet } = useDynamicContext();
 
 	const winningsListener = useMemo(() => {
-		console.log('new definition')
 		return publicMumbaiClient.watchContractEvent({
 	  address: rouletteContractAddress,
 	  abi: rouletteABI,
@@ -322,7 +321,7 @@ export default function GameRoulette({...props}) {
 				account: addr
 			})
 			await walletMumbaiClient.writeContract(approvalRequest.request)
-			// place bet
+			// place bets
 			await walletMumbaiClient.writeContract({
 				address: rouletteContractAddress,
 				abi: rouletteABI,
@@ -331,32 +330,8 @@ export default function GameRoulette({...props}) {
 				account: addr
 			})
 		}
-		setSubmitDisabled(false)
+		
 		return
-	}
-
-	const tempRollDice = async() => {
-		let addr = primaryWallet?.address
-		var {request} = await publicMumbaiClient.simulateContract({
-			address: rouletteContractAddress,
-			abi: rouletteABI,
-			functionName: 'rollDice',
-			//args: [betSpread.map((val) => '' + (val * 1E18))],
-			account: addr
-		})
-		await walletMumbaiClient.writeContract(request)
-	}
-
-	const tempCurrentWinnings = async() => {
-		let addr = primaryWallet?.address
-		var {request} = await publicMumbaiClient.simulateContract({
-			address: rouletteContractAddress,
-			abi: rouletteABI,
-			functionName: 'getCurrentWinnings',
-			args: [addr],
-			account: addr
-		})
-		await walletMumbaiClient.writeContract(request).then((res) => console.log(res))
 	}
 
 	// pop from events
@@ -473,6 +448,18 @@ export default function GameRoulette({...props}) {
 		dispatchEvents({type: 'reset'})
 		setRollResult(-1)
 		setWinnings(-1)
+	}
+
+	const handleWithdrawWinnings = async (e) => {
+		let addr = primaryWallet.address
+		reset(e)
+		const withdrawSimulation = await publicMumbaiClient.simulateContract({
+			address: rouletteContractAddress,
+			abi: rouletteABI,
+			functionName: 'withdrawWinnings',
+			account: addr
+		})
+		await walletMumbaiClient.writeContract(withdrawSimulation.request)
 	}
 
 	const total = useMemo(() => {
@@ -621,27 +608,25 @@ export default function GameRoulette({...props}) {
 				</Box>
 				<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', ml: 3, mt: 1}}>
 					<Tooltip title={<Typography>Undo last bet</Typography>}>
-						<span><IconButton disabled={events.length === 0} onClick={revertEvent}><UndoIcon/></IconButton></span>
+						<span><IconButton disabled={(events.length === 0) || submitDisabled} onClick={revertEvent}><UndoIcon/></IconButton></span>
 					</Tooltip>
 					<Tooltip title={<Typography>Clear bet</Typography>}>
-						<IconButton sx={{mt: 1}} onClick={reset}><ClearIcon/></IconButton>
+						<IconButton sx={{mt: 1}} disabled={submitDisabled} onClick={reset}><ClearIcon/></IconButton>
 					</Tooltip>
 				</Box>
 				<Box sx={{ml: 3, mt: 1}}>
 					{rollResult >= 0 ?
 						<Box>
-							{winnings > 0 ? <Button onClick={reset}>Collect</Button> : <Button onClick={reset}>Go Again</Button>}
+							{winnings > 0 ? <Button onClick={handleWithdrawWinnings}>Collect</Button> : <Button onClick={reset}>Go Again</Button>}
 							<Box sx={{mt: 1}}>
 								<Typography>Rolled: {rollResult}</Typography>
-								<Typography>Total winnings: {winnings}</Typography>
+								<Typography>Returns (incl. winnings): {winnings}</Typography>
 							</Box>
 						</Box>
 						:
-						<Box sx={{display: 'flex'}}>
+						<Box sx={{display: 'flex', flexDirection: 'column'}}>
 							<Button disabled={total === 0} loading={submitDisabled} onClick={() => lockBet()}>Submit Bet</Button>
-							<Button onClick={() => {
-								tempRollDice()
-							}}>Roll Dice</Button>
+							{submitDisabled && rollResult < 0 && <Typography color='text.secondary'>Die being rolled, please wait...</Typography>}
 						</Box>}
 				</Box>
 			</Box>

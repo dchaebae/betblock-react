@@ -47,7 +47,7 @@ export default function InputModal({
 						{title ? title : <Typography variant='h6'>Input</Typography>}
 					</Box>
 					<Tooltip title={<Typography>Close</Typography>}>
-						<IconButton><CloseIcon/></IconButton>
+						<IconButton onClick={handleClose}><CloseIcon/></IconButton>
 					</Tooltip>
 				</Box>
 				<Box sx={{display: 'flex', alignItems: 'center', mt: 2}}>

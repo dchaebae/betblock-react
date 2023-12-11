@@ -6,6 +6,7 @@ import communityRaw from "./raw/lottie-profile.json";
 import gameHomeRaw from './raw/lottie-game-home.json';
 import rouletteRaw from './raw/lottie-roulette.json';
 import notFoundRaw from './raw/lottie-404.json';
+import celebrateRaw from './raw/lottie-celebrate.json';
 /*
 Home
 */
@@ -40,3 +41,7 @@ General
 export const NotFoundAnimation = forwardRef(function(props, ref) {
   return <Lottie lottieRef={ref} animationData={notFoundRaw} {...props} />
 });
+
+export const CelebrateAnimation = forwardRef(function(props, ref) {
+  return <Lottie lottieRef={ref} animationData={celebrateRaw} {...props} />
+})
