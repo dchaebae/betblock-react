@@ -21,19 +21,6 @@ import {rouletteABI, rouletteContractAddress, linkABI, linkContractAddress} from
 import { publicMumbaiClient, walletMumbaiClient } from '../ViemClient'
 import { getContract, parseEther } from 'viem'
 
-// const contractRoulette = getContract({
-// 	address: rouletteContractAddress,
-// 	abi: rouletteABI,
-// 	publicMumbaiClient,
-// 	walletMumbaiClient,
-// })
-// const contractLink = getContract({
-// 	address: linkContractAddress,
-// 	abi: linkABI,
-// 	publicMumbaiClient,
-// 	walletMumbaiClient
-// })
-
 const TooltipWide = styled(({ className, ...props }) => (
   <Tooltip {...props} classes={{ popper: className }} />
 ))({
@@ -225,12 +212,16 @@ export default function GameRoulette({...props}) {
 	const [dozens, dispatchDozens] = useReducer(arrayReducer, [0, 0, 0])
 	const [columns, dispatchColumns] = useReducer(arrayReducer, [0, 0, 0])
 
+	const [correctNetwork, setCorrectNetwork] = useState(false)
+
 	const [submitDisabled, setSubmitDisabled] = useState(false)
 
 	const [winnings, setWinnings] = useState(-1)
 	const [rollResult, setRollResult] = useState(-1)
 
 	const { primaryWallet } = useDynamicContext();
+
+	const [balance, setBalance] = useState(-1)
 
 	const winningsListener = useMemo(() => {
 		return publicMumbaiClient.watchContractEvent({
@@ -476,6 +467,33 @@ export default function GameRoulette({...props}) {
 		return val
 	}, [red, black, odd, even, over, under, dozens, columns, inside])
 
+	useEffect(() => {
+		const checkNetwork = async () => {
+			if (window.ethereum) {
+				const currentChaidId = await window.ethereum.request({method: 'eth_chainId'});
+				if (currentChaidId === '0x13881') {
+					setCorrectNetwork(true)
+				}
+			}
+
+			// load balance
+			await publicMumbaiClient.getBalance({address: primaryWallet?.address}).then((res) => {
+				setBalance(parseInt(res) * 1E-18)
+			}).catch((err) => {
+				setBalance(0.)
+			})
+		}
+		checkNetwork()
+	}, [])
+
+	const switchNetwork = async () => {
+		await window.ethereum.request({
+			method: 'wallet_switchEthereumChain',
+			params: [{chainId: '0x13881'}]
+		})
+		window.location.reload();
+	}
+
 	return (
 		<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
 			<Grid container sx={{mt: 5, mx: 10}} columns={14}>
@@ -603,8 +621,9 @@ export default function GameRoulette({...props}) {
 				</Box>
 				<Box sx={{display: 'flex', flexDirection: 'column'}}>
 					<TextFieldCurrency label='Bet Amount' variant='standard' value={bet} handleChange={handleBetChange} />
-					<Typography color='text.secondary'>Total Balance {currency(10000).format()}</Typography>
-					<Typography color='text.secondary'>Current Bet Total {currency(total).format()}</Typography>
+					{balance < 0 ? <CircularProgress size='1.2rem' /> :
+						<Typography color='text.secondary'>Total Balance {currency(balance, {pattern: '#', precision: 4}).format()}</Typography>}
+					<Typography color='text.secondary'>Current Bet Total {currency(total, {pattern: '#'}).format()}</Typography>
 				</Box>
 				<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', ml: 3, mt: 1}}>
 					<Tooltip title={<Typography>Undo last bet</Typography>}>
@@ -624,10 +643,16 @@ export default function GameRoulette({...props}) {
 							</Box>
 						</Box>
 						:
+						(correctNetwork ?
 						<Box sx={{display: 'flex', flexDirection: 'column'}}>
 							<Button disabled={total === 0} loading={submitDisabled} onClick={() => lockBet()}>Submit Bet</Button>
 							{submitDisabled && rollResult < 0 && <Typography color='text.secondary'>Die being rolled, please wait...</Typography>}
-						</Box>}
+						</Box> : 
+						<Box sx={{display: 'flex', flexDirection: 'column'}}>
+							<Button onClick={() => switchNetwork()}>Switch Network</Button>
+						</Box>
+						)
+					}
 				</Box>
 			</Box>
 		</Box>

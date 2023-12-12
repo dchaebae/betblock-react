@@ -131,10 +131,8 @@ export default function BankHome({...props}) {
 			address: mumbaiLendingAddress,
 			abi: mumbaiLendingABI,
 			functionName: 'depositCollateral',
-			value: parseEther('' + maticBalance),
+			value: parseEther('' + inputValue),
 			account: primaryWallet?.address
-		}).catch((err) => {
-			return
 		})
 		await walletMumbaiClient.writeContract(sendSim.request)
 	}
