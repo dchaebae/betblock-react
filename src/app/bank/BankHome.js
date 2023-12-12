@@ -19,16 +19,9 @@ import InputModal from '../../common/InputModal'
 import TextFieldCurrency from '../../common/TextFieldCurrency'
 import {useDynamicContext} from '@dynamic-labs/sdk-react-core';
 import {publicFujiClient, walletFujiClient, publicMumbaiClient, walletMumbaiClient} from '../ViemClient'
-import {fujiCollateralAddress, fujiCollateralABI} from './contractDetails'
-import {mumbaiLendingAddress, mumbaiLendingABI} from './contractDetails'
+// import {fujiCollateralAddress, fujiCollateralABI} from './contractDetails'
+import {mumbaiLendingAddress, mumbaiLendingABI, fujiLendingABI, fujiLendingAddress} from './contractDetails'
 import { getContract, parseEther } from 'viem'
-
-const contractAvaxLending = getContract({
-	address: fujiCollateralAddress,
-	abi: fujiCollateralABI,
-	publicFujiClient,
-	walletFujiClient,
-})
 
 const BackgroundBox = styled(Box)(({theme}) => ({
 	display: 'flex',
@@ -267,8 +260,14 @@ export default function BankHome({...props}) {
 					}
 				})
 
-				// avax price load
-				setAvaxPrice(0.)
+				// fuji price load
+				publicFujiClient.readContract({
+					address: fujiLendingAddress,
+					abi: fujiLendingABI,
+					functionName: 'getLatestAvaxPrice'
+				}).then((res) => {
+					setAvaxPrice(parseInt(res) * 1E-8)
+				})
 			}
 		}
 
@@ -342,24 +341,24 @@ export default function BankHome({...props}) {
 		)},
 	]
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		if (primaryWallet?.address) {
-			let addr = primaryWallet.address
-
-			const amount = parseEther('0.0001')
-
-			var {request} = await publicFujiClient.simulateContract({
-				address: fujiCollateralAddress,
-				abi: fujiCollateralABI,
-				functionName: 'sendMessage',
-				args: [14767482510784806043, '0x865B3358db605d839E64EeE2eb501986eE777D6b', '0xd21341536c5cf5eb1bcb58f6723ce26e8d8e90e4', amount],
-				account: addr
-			})
-			// await walletMumbaiClient.writeContract(request)
-		}
-		return
-	}
+// 	const handleSubmit = async (e) => {
+// 		e.preventDefault();
+// 		if (primaryWallet?.address) {
+// 			let addr = primaryWallet.address
+// 
+// 			const amount = parseEther('0.0001')
+// 
+// 			var {request} = await publicFujiClient.simulateContract({
+// 				address: fujiCollateralAddress,
+// 				abi: fujiCollateralABI,
+// 				functionName: 'sendMessage',
+// 				args: [14767482510784806043, '0x865B3358db605d839E64EeE2eb501986eE777D6b', '0xd21341536c5cf5eb1bcb58f6723ce26e8d8e90e4', amount],
+// 				account: addr
+// 			})
+// 			// await walletMumbaiClient.writeContract(request)
+// 		}
+// 		return
+// 	}
 
 	return (
 		<BackgroundBox>

@@ -14,8 +14,8 @@ import {
 import PolygonLogo from '../../images/PolygonLogo'
 import AvalancheLogo from '../../images/AvalancheLogo'
 import ChainlinkLogo from '../../images/ChainlinkLogo'
-import {publicMumbaiClient} from '../ViemClient'
-import {pricingMumbaiAddress, pricingMumbaiABI} from '../contractDetailsPricing'
+import {publicMumbaiClient, publicFujiClient} from '../ViemClient'
+import {pricingMumbaiAddress, pricingMumbaiABI, pricingFujiAddress, pricingFujiABI} from '../contractDetailsPricing'
 import currency from 'currency.js'
 
 export default function AppLandingPostNav({...props}) {
@@ -49,6 +49,15 @@ export default function AppLandingPostNav({...props}) {
 				if (res) {
 					setMaticPrice(parseInt(res) * 1E-8)
 				}
+			})
+
+			// avax price load
+			publicFujiClient.readContract({
+				address: pricingFujiAddress,
+				abi: pricingFujiABI,
+				functionName: 'getLatestAvaxPrice'
+			}).then((res) => {
+				setAvaxPrice(parseInt(res) * 1E-8)
 			})
 
 			// avax price load

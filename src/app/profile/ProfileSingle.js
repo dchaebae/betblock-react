@@ -88,12 +88,15 @@ export default function ProfileSingle({
 					setLoadingProfile(false)
 				}).catch((err) => {
 					setLoadingProfile(false)
+					console.log(err)
 				})
 			}).catch((err) => {
 				setLoadingProfile(false)
+				console.log(err)
 			})
 		}).catch((err) => {
 			setLoadingProfile(false)
+			console.log(err)
 		})
 
 
