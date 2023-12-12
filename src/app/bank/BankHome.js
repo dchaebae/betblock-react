@@ -5,7 +5,6 @@ import {
 	Paper,
 	Tooltip,
 	CircularProgress,
-	IconButton,
 	Divider
 } from '@mui/material';
 import {styled} from '@mui/material/styles';
@@ -15,13 +14,15 @@ import PolygonLogo from '../../images/PolygonLogo'
 import AvalancheLogo from '../../images/AvalancheLogo'
 import ChainlinkLogo from '../../images/ChainlinkLogo'
 import Button from '../../common/Button'
-import InputModal from '../../common/InputModal'
+import DisabledNoteModal from '../../common/DisabledNoteModal'
 import TextFieldCurrency from '../../common/TextFieldCurrency'
 import {useDynamicContext} from '@dynamic-labs/sdk-react-core';
 import {publicFujiClient, walletFujiClient, publicMumbaiClient, walletMumbaiClient} from '../ViemClient'
 // import {fujiCollateralAddress, fujiCollateralABI} from './contractDetails'
 import {mumbaiLendingAddress, mumbaiLendingABI, fujiLendingABI, fujiLendingAddress} from './contractDetails'
-import { getContract, parseEther } from 'viem'
+import { parseEther } from 'viem'
+import DepositModal from './DepositModal'
+import WithdrawModal from './WithdrawModal'
 
 const BackgroundBox = styled(Box)(({theme}) => ({
 	display: 'flex',
@@ -38,11 +39,8 @@ const dataBorrow = [
 
 export default function BankHome({...props}) {
 	const [openBorrowModal, setOpenBorrowModal] = useState(false)
-	const [modalTitle, setModalTitle] = useState(null)
+	const [openWithdrawModal, setOpenWithdrawModal] = useState(false)
 	const [modalType, setModalType] = useState(null)
-	const [inputValue, setInputValue] = useState('')
-	const [inputSubLabel, setInputSubLabel] = useState(null)
-	const [inputErrorMessage, setInputErrorMessage] = useState('')
 
 	// balance
 	const [linkBalance, setLinkBalance] = useState(-1)
@@ -54,107 +52,47 @@ export default function BankHome({...props}) {
 	const [avaxPrice, setAvaxPrice] = useState(-1)
 	const [maticPrice, setMaticPrice] = useState(-1)
 
+	// matic borrow stuff
 	const [maticBorrowable, setMaticBorrowable] = useState(0.)
 	const [maticCurrent, setMaticCurrent] = useState(0.)
 	const [maticBorrowDisable, setMaticBorrowDisable] = useState(false);
 	const [maticRepayDisable, setMaticRepayDisable] = useState(false);
 	const [maticInput, setMaticInput] = useState('')
+	// avax borrow stuff
+	const [avaxBorrowable, setAvaxBorrowable] = useState(0.)
+	const [avaxCurrent, setAvaxCurrent] = useState(0.)
+	const [avaxBorrowDisable, setAvaxBorrowDisable] = useState(false);
+	const [avaxRepayDisable, setAvaxRepayDisable] = useState(false);
+	const [avaxInput, setAvaxInput] = useState('')
+
+	const [disabledNote, setDisabledNote] = useState(false)
 
 	const mounted = useRef(true)
 
 	const {primaryWallet} = useDynamicContext();
 
-	const handleInputChange = (e) => {
-		let val = e.target.value;
-		setInputValue(val)
-		setInputErrorMessage('')
-	}
-
-	const openModal = async (asset, assetLogo) => {
-		if (asset === 'MATIC (Mumbai Testnet)') {
-			setOpenBorrowModal(true)
-			setModalType('matic')
-			setInputSubLabel(
-				<React.Fragment>
-					<Typography color='text.secondary' sx={{fontSize: '0.875rem'}}>{'Balance: ' + maticBalance}</Typography>
-				</React.Fragment>)
-			setModalTitle(
-				<React.Fragment>
-					<PolygonLogo simple={+true} sx={{width: '30px', height: '30px'}} />
-					<Typography variant='h6' sx={{ml: 1}}>MATIC (Mumbai Testnet) Collateral</Typography>
-				</React.Fragment>
-			)
-		}
-		// update the avalanche modal
-		else if (asset === 'AVAX (Fuji Testnet)') {
-			await publicFujiClient.estimateGas({account: primaryWallet?.address}).then((res) => {
-					if (mounted.current) {
-						setInputSubLabel(
-							<React.Fragment>
-								<Typography color='text.secondary' sx={{fontSize: '0.875rem'}}>{'Balance: ' + avaxBalance}</Typography>
-							</React.Fragment>
-						)
-					}
-				}).catch((err) => {
-					if (mounted.current) {
-						setAvaxBalance(0.)
-					}
-				}).finally(() => {
-					if (mounted.current) {
-						setOpenBorrowModal(true)
-						setModalType('avax')
-						setModalTitle(
-							<React.Fragment>
-								<AvalancheLogo simple={+true} sx={{width: '30px'}} />
-								<Typography variant='h6' sx={{ml: 1}}>AVAX (Fuji Testnet) Collateral</Typography>
-							</React.Fragment>
-						)
-					}
-				})
-		}
-	}
-
-	// submit matic for collateral
-	const handleSubmitMatic = async () => {
-		let amount = parseFloat(inputValue)
-		// cannot exceed balance
-		if (amount > maticBalance) {
-			setInputErrorMessage('Exceeding balance!')
-			return
-		}
-		if (amount < 0) {
-			setInputErrorMessage('Input must be non-negative')
-			return
-		}
-		// matic lending
-		let sendSim = await publicFujiClient.simulateContract({
-			address: mumbaiLendingAddress,
-			abi: mumbaiLendingABI,
-			functionName: 'depositCollateral',
-			value: parseEther('' + inputValue),
-			account: primaryWallet?.address
-		})
-		await walletMumbaiClient.writeContract(sendSim.request)
-	}
-
-	// submit matic for collateral
-	const handleSubmitAvax = () => {
-		let amount = parseFloat(inputValue)
-		// cannot exceed balance
-		if (amount > avaxBalance) {
-			setInputErrorMessage('Exceeding balance!')
-			return
-		}
-		if (amount < 0) {
-			setInputErrorMessage('Input must be non-negative')
-			return
-		}
-	}
-
 	const closeModal = () => {
 		setOpenBorrowModal(false)
-		setInputValue('')
-		setInputErrorMessage('')
+		setOpenWithdrawModal(false)
+	}
+
+	const handleOpenBorrowModal = (asset) => {
+		setOpenBorrowModal(true)
+		if (asset === 'MATIC (Mumbai Testnet)') {
+			setModalType('mumbai-matic')
+		}
+		else if (asset === 'AVAX (Fuji Testnet)') {
+			setModalType('fuji-avax')
+		}
+	}
+	const handleOpenWithdrawModal = (asset) => {
+		setOpenWithdrawModal(true)
+		if (asset === 'MATIC (Mumbai Testnet)') {
+			setModalType('mumbai-matic')
+		}
+		else if (asset === 'AVAX (Fuji Testnet)') {
+			setModalType('fuji-avax')
+		}
 	}
 
 	// button to borrow matic
@@ -167,13 +105,14 @@ export default function BankHome({...props}) {
 				functionName: 'borrowTokens',
 				args: [parseEther(maticInput)]
 			})
-			await walletMumbaiClient.writeContract(borrow.request)
+			await walletMumbaiClient.writeContract(borrow.request).catch((err) => console.log(err))
 		} catch (err) {
 			console.log(err.message)
 		}
 		setMaticBorrowDisable(false)
 	}
 
+// repay matic
 	const repayMatic = async () => {
 		setMaticRepayDisable(true)
 		try {
@@ -183,12 +122,46 @@ export default function BankHome({...props}) {
 				functionName: 'repayLoan',
 				args: [parseEther(maticInput)]
 			})
-			await walletMumbaiClient.writeContract(borrow.request)	
+			await walletMumbaiClient.writeContract(borrow.request).catch((err) => console.log(err))
 		}
 		catch (err) {
 			console.log(err.message)
 		}
 		setMaticRepayDisable(false)
+	}
+
+	// button to borrow avax
+	const borrowAvax = async () => {
+		setAvaxBorrowDisable(true)
+		try {
+			let borrow = await publicFujiClient.simulateContract({
+				address: fujiLendingAddress,
+				abi: fujiLendingABI,
+				functionName: 'borrowTokens',
+				args: [parseEther(avaxInput)]
+			})
+			await walletFujiClient.writeContract(borrow.request).catch((err) => console.log(err))
+		} catch (err) {
+			console.log(err.message)
+		}
+		setAvaxBorrowDisable(false)
+	}
+
+	// button to repay avax
+	const repayAvax = async () => {
+		setAvaxRepayDisable(true)
+		try {
+			let borrow = await publicFujiClient.simulateContract({
+				address: fujiLendingAddress,
+				abi: fujiLendingABI,
+				functionName: 'repayLoan',
+				args: [parseEther(avaxInput)]
+			})
+			await walletFujiClient.writeContract(borrow.request).catch((err) => console.log(err))
+		} catch (err) {
+			console.log(err.message)
+		}
+		setAvaxRepayDisable(false)
 	}
 
 	// load the borrow modal with numbers
@@ -199,7 +172,7 @@ export default function BankHome({...props}) {
 				abi: mumbaiLendingABI,
 				functionName: 'getMaxBorrowable',
 				args: [primaryWallet?.address]
-			})
+			}).catch((err) => console.log(err))
 			setMaticBorrowable(parseInt(mumbaiBorrowableVal) * 1E-18)
 
 			let mumbaiBorrowBalance = await publicMumbaiClient.readContract({
@@ -207,8 +180,24 @@ export default function BankHome({...props}) {
 				abi: mumbaiLendingABI,
 				functionName: 'getBorrowerBalance',
 				args: [primaryWallet?.address]
-			})
+			}).catch((err) => console.log(err))
 			setMaticCurrent(parseInt(mumbaiBorrowBalance) * 1E-18)
+
+			let avaxBorrowableVal = await publicFujiClient.readContract({
+				address: fujiLendingAddress,
+				abi: fujiLendingABI,
+				functionName: 'getMaxBorrowable',
+				args: [primaryWallet?.address]
+			}).catch((err) => console.log(err))
+			setAvaxBorrowable(parseInt(avaxBorrowableVal) * 1E-18)
+
+			let avaxBorrowBalance = await publicFujiClient.readContract({
+				address: fujiLendingAddress,
+				abi: fujiLendingABI,
+				functionName: 'getBorrowerBalance',
+				args: [primaryWallet?.address]
+			}).catch((err) => console.log(err))
+			setAvaxCurrent(parseInt(avaxBorrowBalance) * 1E-18)
 		}
 	}
 
@@ -331,32 +320,14 @@ export default function BankHome({...props}) {
 		)},
 		{field: 'Action', sortable: false, hideable: false, disableColumnMenu: true, headerName: '',
 			width: 80, renderCell: (params) => (
-					<Button onClick={() => openModal(params.row.asset)}>Deposit</Button>
+					<Button onClick={() => handleOpenBorrowModal(params.row.asset)}>Deposit</Button>
 		)},
 		{field: 'Action2', sortable: false, hideable: false, disableColumnMenu: true, headerName: '',
 			width: 90, renderCell: (params) => (
-					<Button onClick={() => openModal(params.row.asset)}>Withdraw</Button>
+					<Button onClick={() => handleOpenWithdrawModal(params.row.asset)}>Withdraw</Button>
 		)},
 	]
 
-// 	const handleSubmit = async (e) => {
-// 		e.preventDefault();
-// 		if (primaryWallet?.address) {
-// 			let addr = primaryWallet.address
-// 
-// 			const amount = parseEther('0.0001')
-// 
-// 			var {request} = await publicFujiClient.simulateContract({
-// 				address: fujiCollateralAddress,
-// 				abi: fujiCollateralABI,
-// 				functionName: 'sendMessage',
-// 				args: [14767482510784806043, '0x865B3358db605d839E64EeE2eb501986eE777D6b', '0xd21341536c5cf5eb1bcb58f6723ce26e8d8e90e4', amount],
-// 				account: addr
-// 			})
-// 			// await walletMumbaiClient.writeContract(request)
-// 		}
-// 		return
-// 	}
 
 	return (
 		<BackgroundBox>
@@ -375,7 +346,7 @@ export default function BankHome({...props}) {
 						{linkPrice < 0 ? <CircularProgress size='1.6rem'/> : <Typography color='text.secondary'>1 LINK = {currency(linkPrice).format()}</Typography>}
 						<Typography color='text.secondary' sx={{mr: 1, ml: 3}}>APY {0.03}%</Typography>
 						<Tooltip title={<Typography>Add to the LINK pool and earn interest!</Typography>}>
-							<Box><Button sx={{mt: 0.5}}>Lend</Button></Box>
+							<Box><Button sx={{mt: 0.5}} onClick={() => setDisabledNote(true)}>Lend</Button></Box>
 						</Tooltip>
 					</Box>
 				</Box>
@@ -404,8 +375,8 @@ export default function BankHome({...props}) {
 									</Box>
 								</Box>
 								<Box sx={{display: 'flex', flexDirection: 'column', mt: 2}}>
-									<Button sx={{ml: 4}} disabled={(maticCurrent === 0) || (maticInput === '' || maticRepayDisable)}>Repay</Button>
-									<Button sx={{ml: 1, mt: 0.5}} onClick={borrowMatic} disabled={maticInput === '' || maticBorrowDisable}>
+									<Button sx={{ml: 4}} disabled={(maticCurrent === 0) || (maticInput === '' || maticRepayDisable)} onClick={() => setDisabledNote(true)}>Repay</Button>
+									<Button sx={{ml: 1, mt: 0.5}} onClick={() => setDisabledNote(true)} disabled={maticInput === '' || maticBorrowDisable}>
 										Borrow
 									</Button>
 								</Box>
@@ -425,12 +396,13 @@ export default function BankHome({...props}) {
 									</Box>
 									<Box sx={{display: 'flex', alignItems: 'flex-start'}}>
 										<TextFieldCurrency sx={{'& .MuiInputBase-input': {padding: '8px'}}}
-											helperText={`Max borrowable: ${0}`}/>
+											handleChange={(e) => setAvaxInput(e.target.value)}
+											helperText={`Max borrowable: ${avaxBorrowable * avaxPrice}`}/>
 									</Box>
 								</Box>
 								<Box sx={{display: 'flex', flexDirection: 'column', mt: 2}}>
-									<Button sx={{ml: 4}} disabled>Repay</Button>
-									<Button sx={{ml: 1, mt: 0.5}} disabled>
+									<Button sx={{ml: 4}} disabled={(avaxCurrent === 0) || (avaxInput === '' || avaxRepayDisable)} onClick={() => setDisabledNote(true)}>Repay</Button>
+									<Button sx={{ml: 1, mt: 0.5}} disabled={avaxInput === '' || avaxBorrowDisable} onClick={() => setDisabledNote(true)}>
 										Borrow
 									</Button>
 								</Box>
@@ -449,15 +421,19 @@ export default function BankHome({...props}) {
 			</Box>
 			{/* <TextField value={inputValue} onChange={handleInputChange}/> */}
 			{/* <Button onClick={handleSubmit}>Submit</Button> */}
-			<InputModal
-				value={inputValue}
-				handleChange={handleInputChange}
-				errorMessage={inputErrorMessage}
-				handleSubmit={modalType === 'matic' ? handleSubmitMatic : handleSubmitAvax}
+			<DepositModal
 				open={openBorrowModal}
 				handleClose={closeModal}
-				title={modalTitle}
-				inputSubLabel={inputSubLabel} />
+				maticBalance={maticBalance}
+				avaxBalance={avaxBalance}
+				modalType={modalType} />
+			<WithdrawModal
+				open={openWithdrawModal}
+				handleClose={closeModal}
+				modalType={modalType}/>
+			<DisabledNoteModal
+				open={disabledNote}
+				handleClose={() => setDisabledNote(false)}/>
 
 		</BackgroundBox>
 	)

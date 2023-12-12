@@ -7,6 +7,7 @@ import gameHomeRaw from './raw/lottie-game-home.json';
 import rouletteRaw from './raw/lottie-roulette.json';
 import notFoundRaw from './raw/lottie-404.json';
 import celebrateRaw from './raw/lottie-celebrate.json';
+import cookieRaw from './raw/lottie-cookie.json'
 /*
 Home
 */
@@ -44,4 +45,8 @@ export const NotFoundAnimation = forwardRef(function(props, ref) {
 
 export const CelebrateAnimation = forwardRef(function(props, ref) {
   return <Lottie lottieRef={ref} animationData={celebrateRaw} {...props} />
+})
+
+export const CookieAnimation = forwardRef(function(props, ref) {
+  return <Lottie lottieRef={ref} animationData={cookieRaw} {...props}/>
 })

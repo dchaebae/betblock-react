@@ -98,8 +98,6 @@ export default function ProfileSingle({
 			setLoadingProfile(false)
 			console.log(err)
 		})
-
-
 	}
 
 	useEffect(() => {

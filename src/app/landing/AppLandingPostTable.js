@@ -13,7 +13,7 @@ export default function AppLandingPostTable({
 		<Box sx={{display: 'flex', flexDirection: 'column', height: '400px', mx: 10, mt: 10}}>
 			<Box sx={{display: 'flex', flexDirection: 'column'}}>
 				<Typography variant='h4'>Leaderboard</Typography>
-				<Typography color="text.secondary" gutterBottom>Your top betblock winners</Typography>
+				<Typography color="text.secondary" gutterBottom>Your top betblock winners (beta)</Typography>
 			</Box>
 			<LeaderboardTable />
 		</Box>

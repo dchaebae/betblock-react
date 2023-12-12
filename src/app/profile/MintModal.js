@@ -16,6 +16,7 @@ import { getContract, toHex } from 'viem'
 import {nftAddress, nftABI, sourceCode} from './contractDetails';
 import {encryptSecretsUrls} from './ChainlinkFunctionsHelper';
 import {CelebrateAnimation} from '../../lottie/LottieWraps'
+import Button from '../../common/Button'
 import axios from 'axios'
 
 const style = {
@@ -40,6 +41,8 @@ export default function MintModal({
 }) {
 	const [value, setValue] = useState('')
 	const [page, setPage] = useState(0)
+
+	const [correctNetwork, setCorrectNetwork] = useState(false)
 
 	let containerRef = useRef(null)
 
@@ -81,21 +84,44 @@ export default function MintModal({
 		const checkBalance = async () => {
 			publicFujiClient.readContract({address: nftAddress, abi: nftABI, functionName: 'balanceOf', args: [address]}).then((res) => {
 				if (parseInt(res) > 0) {
-					setPage(2)
+					setPage(0)
 				}
 			}).catch((err) => {
 				
 			})
 		}
+
+		const checkNetwork = async () => {
+			if (window.ethereum) {
+				const currentChaidId = await window.ethereum.request({method: 'eth_chainId'});
+				if (currentChaidId === '0xa869') {
+					setCorrectNetwork(true)
+				}
+				else {
+					setCorrectNetwork(false)
+				}
+			}
+		}
+
+
 		const interval = setInterval(() => {
       checkBalance();
     }, 1000)
+    checkNetwork();
 
     // // // when the component unmounts
     return () => {
        clearInterval(interval)
     }
-	})
+	}, [])
+
+	const switchNetwork = async () => {
+		await window.ethereum.request({
+			method: 'wallet_switchEthereumChain',
+			params: [{chainId: '0xa869'}]
+		})
+		window.location.reload();
+	}
 
 	return (
 		<Modal
@@ -116,6 +142,7 @@ export default function MintModal({
 				<Box sx={{display: 'flex', flexDirection: 'column', mr: 2}}>
 					<Typography color='text.secondary' sx={{fontStyle: 'italic'}}>Create a one-of-a-kind AI-generated NFT to represent your profile. You may only have 1 NFT, so choose your words wisely!</Typography>
 				</Box>
+				{ correctNetwork ? 
 				<Box sx={{display: 'flex', alignItems: 'flex-start', mt: 2}}>
 					<TextField
 						helperText={'64 character limit. Currently ' + value.length}
@@ -128,7 +155,12 @@ export default function MintModal({
 							<IconButton disabled={value === ''} onClick={handleSubmit} sx={{ml: 1}}><NavigateNextIcon/></IconButton>
 						</Box>
 					</Tooltip>
+				</Box> :
+
+				<Box sx={{display: 'flex', alignItems: 'flex-start', mt: 2}}>
+					<Button onClick={() => switchNetwork()}>Switch Network</Button>
 				</Box>
+				}
 				</React.Fragment>
 				}
 				<Slide direction='left' in={page === 1} mountOnEnter unmountOnExit container={containerRef.current}>

@@ -71,18 +71,21 @@ export default function CommunityHome({
 				}
 				else {
 					let newValLower = searchInput.toLowerCase();
-					let ensAttempt = newValLower.endsWith('.eth') ? newValLower : (newValLower + '.eth')
-					await publicMainnetClient.getEnsAddress({name: normalize(ensAttempt)}).then((res) => {
-						if (res) {
-							setSearchOptions([{name: ensAttempt, address: res}])
-						}
-						else {
-							setSearchOptions([])
-						}
-					}).catch((err) => {
-						console.error('Error fetching ENS address:', err);
-						setSearchOptions([]);
-					})
+					if (!newValLower.endsWith('.')) {
+						let ensAttempt = newValLower.endsWith('.eth') ? newValLower : (newValLower + '.eth')
+
+						await publicMainnetClient.getEnsAddress({name: normalize(ensAttempt)}).then((res) => {
+							if (res) {
+								setSearchOptions([{name: ensAttempt, address: res}])
+							}
+							else {
+								setSearchOptions([])
+							}
+						}).catch((err) => {
+							console.error('Error fetching ENS address:', err);
+							setSearchOptions([]);
+						})
+					}
 				}
 				setSearchLoading(false)
 			}, 500)
