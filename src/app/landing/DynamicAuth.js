@@ -33,7 +33,7 @@ export default function DynamicAuth ({...props}) {
   		<Box id='landing-action' sx={{mt: '1rem'}}>
   			<Button onClick={() => setShowAuthFlow(true)} endIcon={<WalletIcon/>} fontSize='1.1rem'>Connect Wallet</Button>
   		</Box>
-  		<Tooltip title={<Typography>Welcome to betblock! We are glad you are here. When you connect for the first time, you will be prompted to submit maximum of 3 words, which will be used to generate your unique NFT & profile. **Note: this experience is not mobile-optimized and runs on testnets</Typography>}>
+  		<Tooltip title={<Typography>Welcome to betblock! We are glad you are here. Connect your wallet to proceed! Go to your profile to mint your unique NFT. **Note: this experience is not mobile-optimized and runs on Mumbai & Fuji Testnet</Typography>}>
 	  		<Box sx={{display: 'flex', mt: '1rem', color: (theme) => theme.palette.text.secondary}}>
 	  			<Typography>First time user?</Typography>
 	  			<InfoIcon sx={{ml: 1}} />

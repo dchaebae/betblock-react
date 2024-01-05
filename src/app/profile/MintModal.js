@@ -84,7 +84,7 @@ export default function MintModal({
 		const checkBalance = async () => {
 			publicFujiClient.readContract({address: nftAddress, abi: nftABI, functionName: 'balanceOf', args: [address]}).then((res) => {
 				if (parseInt(res) > 0) {
-					setPage(0)
+					setPage(2)
 				}
 			}).catch((err) => {
 				

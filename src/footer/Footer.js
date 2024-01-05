@@ -10,9 +10,8 @@ export default function Footer({...props}) {
 		<footer style={{display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '2rem', paddingBottom: '2rem'}}>
 			<Box sx={{display: 'flex', alignItems: 'center'}}>
 				<BetblockLogo sx={{width: '30px'}} />
-				<Typography sx={{fontWeight: 'bold', ml: 1}}>betblock</Typography>
+				<Typography sx={{fontWeight: 'bold', ml: 1}}>betblock {new Date().getFullYear()}</Typography>
 			</Box>
-			<Typography sx={{ml: 2}}>@Chainlink Hackathon 2023</Typography>
 		</footer>
 	)
 }

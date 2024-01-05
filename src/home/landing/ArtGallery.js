@@ -87,6 +87,7 @@ export default function ArtGallerySized ({
   ...props
 }) {
   let gallery = [
+    {image: Image0, ratio: 1},
     {image: Image1, ratio: 1},
     {image: Image2, ratio: 1},
     {image: Image3, ratio: 1},
